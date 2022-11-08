@@ -15,16 +15,17 @@ public class Mage : MonoBehaviour
 
     [Header("Q Attributes")]
     private bool canQ = true;
-    
     public GameObject qCdSlide;
+    public Slider qCdUI;
+    private float qCD = 3f;
+    private float nextFireQ = 0f;
+
     public GameObject beamObj;
     public Transform beamFirePoint;
     public LineRenderer lr;
+    public AudioSource beamSound;
 
-    public Slider qCdUI;
-
-    private float qCD  = 3f;
-    private float nextFireQ = 0f;
+    
 
     [Space(10)]
 
@@ -32,16 +33,25 @@ public class Mage : MonoBehaviour
     private float wCD = 3f;
     public Slider wCdUI;
     public GameObject wCdSlide;
+
     public ParticleSystem blastFx;
+
+    public AudioSource blastSoundSource;
+    public AudioClip blastSoundClip;
 
     [Space(10)]
 
     [Header("E Attributes")]
+    public GameObject slashObj;
+    public ParticleSystem eOnHitFX;
+
     bool canE = true;
     private float eCD = 0.2f;
     public Slider eCdUI;
     public GameObject eCdSlide;
-    public GameObject slashObj;
+
+    public AudioSource slashSound;
+    public AudioClip slashClip;
 
     bool isCd;
     bool isQCd;
@@ -99,7 +109,10 @@ public class Mage : MonoBehaviour
                 
                 StartCoroutine(beamTimer());
             }
-            
+            if(Input.GetKeyDown(KeyCode.Q))
+            {
+                beamSound.Play();
+            }
             
         }
 
@@ -155,14 +168,13 @@ public class Mage : MonoBehaviour
     
     public void beam()
     {
+
         beamObj.SetActive(true);
-        RaycastHit2D hitInfo = Physics2D.Raycast(beamFirePoint.position, beamFirePoint.right);
+        RaycastHit2D hitInfo = Physics2D.Raycast(beamFirePoint.position, beamFirePoint.right, enemyLayer);
         if (hitInfo)
         {
-            
-
             Enemy enemy = hitInfo.transform.GetComponent<Enemy>();
-            //enemy.TakeDamage(5);
+            enemy.TakeDamage(5);
         }
         else
         {
@@ -195,6 +207,7 @@ public class Mage : MonoBehaviour
     private bool canW = true;
     public void blast()
     {
+        blastSoundSource.PlayOneShot(blastSoundClip, 1f);
         blastFx.Play();
         //aoeIndicator.SetActive(true);
         //canW = false;
@@ -223,9 +236,16 @@ public class Mage : MonoBehaviour
     #region E Slash Shoot
     void shootSlash()
     {
+        slashSound.PlayOneShot(slashClip, 1.5f);
         GameObject proj = Instantiate(slashObj, beamFirePoint.position, beamFirePoint.rotation);
         Rigidbody2D eRb = proj.GetComponent<Rigidbody2D>();
         eRb.AddForce(beamFirePoint.right * 20f, ForceMode2D.Impulse);
+
+        if(proj.GetComponent<ProjectileBehaviour>().hitPos != null)
+        {
+            Instantiate(eOnHitFX, proj.GetComponent<ProjectileBehaviour>().hitPos, Quaternion.identity);
+            
+        }
 
         eCD = .2f;
     }

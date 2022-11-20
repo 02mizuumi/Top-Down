@@ -13,16 +13,12 @@ public class ProjectileBehaviour : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        
+        Instantiate(GameObject.Find("Player").GetComponent<Mage>().eOnHitFX, collision.transform.position, Quaternion.identity);
         Destroy(gameObject);
 
         if(collision.gameObject.layer == 3)
         {
             collision.GetComponent<Enemy>().TakeDamage(35);
-        }
-        if(collision.tag != "Player")
-        {
-            hitPos = new Vector2(collision.transform.position.x, collision.transform.position.y);
-        }    
+        }  
     }
 }

@@ -44,6 +44,9 @@ public class Mage : MonoBehaviour
     [Header("E Attributes")]
     public GameObject slashObj;
     public ParticleSystem eOnHitFX;
+    public Transform eFirePoint;
+
+    [HideInInspector] public Vector3 eHit;
 
     bool canE = true;
     private float eCD = 0.2f;
@@ -194,7 +197,7 @@ public class Mage : MonoBehaviour
 
 
 
-    void drawBeam(Vector2 firePoint, Vector2 range)
+    void drawBeam(Vector2 firePoint, Vector3 range)
     {
         //lr.SetPosition(0, firePoint);
         lr.SetPosition(1, range);
@@ -219,7 +222,8 @@ public class Mage : MonoBehaviour
             if (hit != null)
             {
                 Enemy enemy = hit.transform.GetComponent<Enemy>();
-                enemy.TakeDamage(20);
+                Instantiate(eOnHitFX, hit.transform.position, Quaternion.identity);
+                enemy.TakeDamage(50);
             }
         }
         //StartCoroutine(blastCD());
@@ -237,15 +241,26 @@ public class Mage : MonoBehaviour
     void shootSlash()
     {
         slashSound.PlayOneShot(slashClip, 1.5f);
-        GameObject proj = Instantiate(slashObj, beamFirePoint.position, beamFirePoint.rotation);
+        GameObject proj = Instantiate(slashObj, eFirePoint.position, eFirePoint.rotation);
         Rigidbody2D eRb = proj.GetComponent<Rigidbody2D>();
         eRb.AddForce(beamFirePoint.right * 20f, ForceMode2D.Impulse);
 
-        if(proj.GetComponent<ProjectileBehaviour>().hitPos != null)
+
+        RaycastHit2D hit = Physics2D.Raycast(eFirePoint.position, eFirePoint.right);
+        if (hit.point != null)
         {
-            Instantiate(eOnHitFX, proj.GetComponent<ProjectileBehaviour>().hitPos, Quaternion.identity);
-            
+            eHit = hit.point;
+
+            if(proj.GetComponent<Collider2D>().CompareTag("Hittable"))
+            {
+                Debug.Log(hit.point);
+                Instantiate(eOnHitFX, hit.point, Quaternion.LookRotation(hit.normal));
+            }
+            //Instantiate(eOnHitFX, hit.point, Quaternion.LookRotation(hit.normal));
         }
+
+        //Debug.Log(hit.point);
+
 
         eCD = .2f;
     }

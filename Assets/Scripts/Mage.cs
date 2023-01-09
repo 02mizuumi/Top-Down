@@ -14,18 +14,18 @@ public class Mage : MonoBehaviour
     [Space(10)]
 
     [Header("Q Attributes")]
-    private bool canQ = true;
-    public GameObject qCdSlide;
-    public Slider qCdUI;
-    private float qCD = 3f;
-    private float nextFireQ = 0f;
+    //cd
+    private bool canSpeed = true;
+    public GameObject speedCDSlide;
+    public Slider speedCDUI;
+    private float speedCD = 5f;
 
+    //obj
     public GameObject beamObj;
+    public Material qMat;
     public Transform beamFirePoint;
     public LineRenderer lr;
-    public AudioSource beamSound;
-
-    
+    public AudioSource speedUpSound;
 
     [Space(10)]
 
@@ -48,78 +48,45 @@ public class Mage : MonoBehaviour
 
     [HideInInspector] public Vector3 eHit;
 
-    bool canE = true;
-    private float eCD = 0.2f;
-    public Slider eCdUI;
-    public GameObject eCdSlide;
+    bool canShoot = true;
+    private float shootCD = 0.2f;
+    public Slider shootCdUI;
+    public GameObject shootCDSlide;
 
     public AudioSource slashSound;
     public AudioClip slashClip;
 
+    public bool speedBuff = false;
+
     bool isCd;
-    bool isQCd;
+    bool isspeedCD;
     private void Start()
     {
         isCd = false;
-        isQCd = false;
+        isspeedCD = false;
         beamObj.SetActive(false);
         //aoeIndicator.SetActive(false);
-        qCdUI.value = 0;
-        qCD = 0;
+        speedCDUI.value = 0;
+        speedCD = 0;
         wCdUI.value = 0;
         wCD = 0;
-        eCdUI.value = 0;
-        eCD = 0;
+        shootCdUI.value = 0;
+        shootCD = 0;
     }
 
     private void Update()
     {
-        Debug.Log(isQCd);
 
         #region mess
         //wCdUI.value = wCD;
-        qCdUI.value = qCD;
-        eCdUI.value = eCD;
+        speedCDUI.value = speedCD;
+        shootCdUI.value = shootCD;
         if (beamObj.activeSelf == true)
         {
             lr.SetPosition(0, beamFirePoint.position);
         }
         #endregion
-        #region q
 
-        if (qCD > 0)
-        {
-            qCdSlide.SetActive(true);
-            qCD -= Time.deltaTime;
-            canQ = false;
-            if (qCD < 0)
-            {
-                qCD = 0;
-            }
-        }
-        else if (qCD <= 0)
-        {
-            qCdSlide.SetActive(false);
-            canQ = true;
-        }
-
-        if (canQ)
-        {
-
-            if(Input.GetKey(KeyCode.Q))
-            {
-                beam();
-                
-                StartCoroutine(beamTimer());
-            }
-            if(Input.GetKeyDown(KeyCode.Q))
-            {
-                beamSound.Play();
-            }
-            
-        }
-
-        #endregion
         #region w
         if (Input.GetKeyDown(KeyCode.W) && isCd == false)
         {
@@ -140,71 +107,62 @@ public class Mage : MonoBehaviour
             }
         }
         #endregion
-        #region e
-        if (eCD > 0)
+
+        #region q?
+        if (shootCD > 0)
         {
-            eCdSlide.SetActive(true);
-            eCD -= Time.deltaTime;
-            canE = false;
-            if (eCD < 0)
+            shootCDSlide.SetActive(true);
+            shootCD -= Time.deltaTime;
+            canShoot = false;
+            if (shootCD < 0)
             {
-                eCD = 0;
+                shootCD = 0;
             }
         }
-        else if (eCD <= 0)
+        else if (shootCD <= 0)
         {
-            eCdSlide.SetActive(false);
-            canE = true;
+            shootCDSlide.SetActive(false);
+            canShoot = true;
         }
 
-        if (canE)
+        if (canShoot)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
                 shootSlash();
             }
         }
         #endregion
-    }
 
-    #region Q Beam
-    
-    public void beam()
-    {
-
-        beamObj.SetActive(true);
-        RaycastHit2D hitInfo = Physics2D.Raycast(beamFirePoint.position, beamFirePoint.right, enemyLayer);
-        if (hitInfo)
+        #region e?
+        if (speedCD > 0)
         {
-            Enemy enemy = hitInfo.transform.GetComponent<Enemy>();
-            enemy.TakeDamage(5);
+            speedCDSlide.SetActive(true);
+            speedCD -= Time.deltaTime;
+            canSpeed = false;
+            if (speedCD < 0)
+            {
+                speedCD = 0;
+            }
         }
-        else
+        else if (speedCD <= 0)
         {
-            drawBeam(beamFirePoint.position, beamFirePoint.transform.right * 100);
+            speedCDSlide.SetActive(false);
+            canSpeed = true;
         }
-    }
-    
-    IEnumerator beamTimer()
-    {
-        yield return new WaitForSeconds(2f);
 
-        qCD = 4;
-
-        canQ = false;
-        beamObj.SetActive(false);
-    }
-
-
-
-    void drawBeam(Vector2 firePoint, Vector3 range)
-    {
-        //lr.SetPosition(0, firePoint);
-        lr.SetPosition(1, range);
+        if (canSpeed)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                StartCoroutine(speedChange());
+                speedCD = 5;
+            }
+        }
+        #endregion
     }
 
-
-    #endregion
+   
 
     #region W Blast
     private bool canW = true;
@@ -262,7 +220,23 @@ public class Mage : MonoBehaviour
         //Debug.Log(hit.point);
 
 
-        eCD = .2f;
+        shootCD = .2f;
+    }
+    #endregion
+
+    #region speed up
+
+
+    IEnumerator speedChange()
+    {
+        speedUpSound.Play();
+        PlayerMovement movement = player.GetComponent<PlayerMovement>();
+
+        movement.speed = 8f;
+        movement.hp += 30;
+        speedBuff = true;
+        yield return new WaitForSeconds(1f);
+        movement.speed = 3f;
     }
     #endregion
 }

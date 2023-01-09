@@ -21,8 +21,10 @@ public class Enemy : MonoBehaviour
             Instantiate(hitFx, transform.position, Quaternion.identity);
             Destroy(this.gameObject);
 
-            spawner.enemyCount -= 1 ;
+            spawner.enemyCount -= 1;
         }
     }
+
+    
 
 }
